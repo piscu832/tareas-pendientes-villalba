@@ -24,15 +24,56 @@
                     <span class="text-[10px] font-medium text-slate-500 tracking-wider mt-1 uppercase">Ingenio y Experiencia al Servicio de la Salud</span>
                 </div>
             </div>
-            <button id="add-task-btn" class="bg-[#1C3F87] hover:bg-[#16326b] text-white px-5 py-2.5 rounded-lg font-bold transition-all flex items-center gap-2 shadow-md hover:shadow-lg active:scale-95 text-sm uppercase tracking-wider">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Nueva Tarea
-            </button>
+            <div class="flex items-center gap-4">
+                <button id="add-task-btn" class="hidden bg-[#1C3F87] hover:bg-[#16326b] text-white px-5 py-2.5 rounded-lg font-bold transition-all flex items-center gap-2 shadow-md hover:shadow-lg active:scale-95 text-sm uppercase tracking-wider">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Nueva Tarea
+                </button>
+                <button id="logout-btn" class="hidden text-slate-400 hover:text-rose-600 font-bold text-xs uppercase tracking-widest transition-colors">
+                    Cerrar Sesión
+                </button>
+            </div>
         </div>
     </nav>
 
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="fixed inset-0 bg-white z-[60] flex items-center justify-center p-4">
+        <div class="w-full max-w-md space-y-8 animate-fade-in">
+            <div class="text-center">
+                <img src="LOGO TAREAS.png" alt="Logo Villalba" class="h-20 w-auto mx-auto mb-4">
+                <h2 class="text-3xl font-black text-[#1C3F87] uppercase tracking-tight">Acceso Institucional</h2>
+                <p class="text-slate-500 mt-2 font-medium">Ingresa tus credenciales para gestionar tus tareas</p>
+            </div>
+            
+            <div class="bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-xl">
+                <form id="auth-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-widest mb-1">Email Corporativo</label>
+                        <input type="email" id="auth-email" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#1C3F87] focus:border-transparent outline-none transition-all" placeholder="ejemplo@villalba.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-widest mb-1">Contraseña</label>
+                        <input type="password" id="auth-password" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#1C3F87] focus:border-transparent outline-none transition-all" placeholder="••••••••">
+                    </div>
+                    <button type="submit" id="auth-submit-btn" class="w-full py-4 bg-[#1C3F87] text-white rounded-xl font-black uppercase tracking-widest hover:bg-[#16326b] shadow-lg transition-all active:scale-[0.98]">
+                        Iniciar Sesión
+                    </button>
+                    <div class="text-center pt-2">
+                        <button type="button" id="toggle-auth-mode" class="text-xs font-bold text-slate-400 hover:text-[#1C3F87] transition-colors uppercase tracking-wider">
+                            ¿No tienes cuenta? Regístrate aquí
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="text-center">
+                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em]">Villalba Ingenio y Experiencia al Servicio de la Salud</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto p-6">
+    <main id="app-content" class="max-w-7xl mx-auto p-6 opacity-0 transition-opacity duration-500 pointer-events-none">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             <!-- Column: Pendiente -->

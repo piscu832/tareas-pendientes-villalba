@@ -1,9 +1,8 @@
 /**
- * TAREAS PENDIENTES - Kanban Logic with Supabase Integration
+ * TAREAS PENDIENTES - Kanban Logic with Supabase Auth & DB
  */
 
 // --- CONFIGURACIÓN DE BASE DE DATOS (SUPABASE) ---
-// Reemplaza estos valores con los de tu proyecto en supabase.com
 const SUPABASE_URL = 'TU_URL_DE_SUPABASE';
 const SUPABASE_ANON_KEY = 'TU_KEY_ANONIMA_DE_SUPABASE';
 
@@ -13,8 +12,19 @@ if (SUPABASE_URL !== 'TU_URL_DE_SUPABASE') {
 }
 
 let tasks = [];
+let currentUser = null;
+let isLoginMode = true;
 
 // DOM Elements
+const authScreen = document.getElementById('auth-screen');
+const appContent = document.getElementById('app-content');
+const authForm = document.getElementById('auth-form');
+const authEmail = document.getElementById('auth-email');
+const authPassword = document.getElementById('auth-password');
+const authSubmitBtn = document.getElementById('auth-submit-btn');
+const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
+const logoutBtn = document.getElementById('logout-btn');
+
 const modal = document.getElementById('task-modal');
 const modalContainer = document.getElementById('modal-container');
 const taskForm = document.getElementById('task-form');
@@ -45,8 +55,111 @@ const counts = {
 
 // Initialize App
 async function init() {
-    await loadTasks();
+    setupAuthListeners();
     setupEventListeners();
+    
+    if (supabaseClient) {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        handleAuthStateChange(session?.user || null);
+    } else {
+        // Fallback for LocalStorage only mode
+        handleAuthStateChange({ id: 'local-user', email: 'offline@villalba.com' });
+    }
+}
+
+// Auth Handlers
+function setupAuthListeners() {
+    if (supabaseClient) {
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            handleAuthStateChange(session?.user || null);
+        });
+    }
+
+    toggleAuthModeBtn.addEventListener('click', () => {
+        isLoginMode = !isLoginMode;
+        authSubmitBtn.textContent = isLoginMode ? 'Iniciar Sesión' : 'Registrarse';
+        toggleAuthModeBtn.textContent = isLoginMode ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión';
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = authEmail.value;
+        const password = authPassword.value;
+
+        if (!supabaseClient) {
+            alert('Configura Supabase para habilitar el sistema de usuarios.');
+            return;
+        }
+
+        try {
+            let result;
+            if (isLoginMode) {
+                result = await supabaseClient.auth.signInWithPassword({ email, password });
+            } else {
+                result = await supabaseClient.auth.signUp({ email, password });
+            }
+
+            if (result.error) throw result.error;
+            if (!isLoginMode && result.data.user) alert('Registro exitoso. Revisa tu email si es necesario.');
+            
+        } catch (err) {
+            alert('Error de autenticación: ' + err.message);
+        }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        else handleAuthStateChange(null);
+    });
+}
+
+function handleAuthStateChange(user) {
+    currentUser = user;
+    if (user) {
+        authScreen.classList.add('hidden');
+        appContent.classList.remove('opacity-0', 'pointer-events-none');
+        addTaskBtn.classList.remove('hidden');
+        logoutBtn.classList.remove('hidden');
+        loadTasks();
+    } else {
+        authScreen.classList.remove('hidden');
+        appContent.classList.add('opacity-0', 'pointer-events-none');
+        addTaskBtn.classList.add('hidden');
+        logoutBtn.classList.add('hidden');
+        tasks = [];
+        renderTasks();
+    }
+}
+
+// Task Management
+async function loadTasks() {
+    if (supabaseClient && currentUser) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('tasks')
+                .select('*')
+                .eq('user_id', currentUser.id); // Filter by user_id
+            
+            if (error) throw error;
+            tasks = data || [];
+        } catch (err) {
+            console.error('Error cargando de Supabase:', err);
+            loadFromLocalStorage();
+        }
+    } else {
+        loadFromLocalStorage();
+    }
+    renderTasks();
+}
+
+function loadFromLocalStorage() {
+    const localData = JSON.parse(localStorage.getItem('antigravity_tasks')) || [];
+    // Filter by local user if offline
+    tasks = localData.filter(t => t.user_id === (currentUser?.id || 'local-user'));
+}
+
+function saveToLocalStorage() {
+    localStorage.setItem('antigravity_tasks', JSON.stringify(tasks));
 }
 
 // Event Listeners
@@ -65,38 +178,10 @@ function setupEventListeners() {
     });
 }
 
-// Data Management
-async function loadTasks() {
-    if (supabaseClient) {
-        try {
-            const { data, error } = await supabaseClient
-                .from('tasks')
-                .select('*');
-            
-            if (error) throw error;
-            tasks = data || [];
-        } catch (err) {
-            console.error('Error cargando de Supabase:', err);
-            loadFromLocalStorage();
-        }
-    } else {
-        loadFromLocalStorage();
-    }
-    renderTasks();
-}
-
-function loadFromLocalStorage() {
-    tasks = JSON.parse(localStorage.getItem('antigravity_tasks')) || [];
-}
-
-function saveToLocalStorage() {
-    localStorage.setItem('antigravity_tasks', JSON.stringify(tasks));
-}
-
 // Modal Functions
 function openModal(taskId = null) {
     if (taskId) {
-        const task = tasks.find(t => t.id === taskId || t.id.toString() === taskId.toString());
+        const task = tasks.find(t => t.id.toString() === taskId.toString());
         if (task) {
             modalTitle.textContent = 'Editar Tarea';
             inputId.value = task.id;
@@ -132,20 +217,19 @@ async function saveTask() {
         observations: inputObs.value,
         priority: inputPriority.value,
         status: taskId ? tasks.find(t => t.id.toString() === taskId.toString()).status : 'todo',
+        user_id: currentUser.id, // Assign to current user
         updated_at: new Date().toISOString()
     };
 
-    if (supabaseClient) {
+    if (supabaseClient && currentUser.id !== 'local-user') {
         try {
             if (taskId) {
-                // Update
                 const { error } = await supabaseClient
                     .from('tasks')
                     .update(taskData)
                     .eq('id', taskId);
                 if (error) throw error;
             } else {
-                // Create
                 const { error } = await supabaseClient
                     .from('tasks')
                     .insert([{ ...taskData, created_at: new Date().toISOString() }]);
@@ -154,7 +238,6 @@ async function saveTask() {
             await loadTasks();
         } catch (err) {
             console.error('Error en Supabase:', err);
-            alert('Error al guardar en la nube. Se usará almacenamiento local.');
             handleLocalSave(taskId, taskData);
         }
     } else {
@@ -175,7 +258,7 @@ function handleLocalSave(taskId, taskData) {
 }
 
 async function moveTask(id, newStatus) {
-    if (supabaseClient) {
+    if (supabaseClient && currentUser.id !== 'local-user') {
         try {
             const { error } = await supabaseClient
                 .from('tasks')
@@ -184,7 +267,6 @@ async function moveTask(id, newStatus) {
             if (error) throw error;
             await loadTasks();
         } catch (err) {
-            console.error('Error moviendo en Supabase:', err);
             moveTaskLocal(id, newStatus);
         }
     } else {
@@ -201,7 +283,7 @@ function moveTaskLocal(id, newStatus) {
 async function deleteTask(id) {
     if (!confirm('¿Estás seguro de que deseas eliminar esta tarea?')) return;
 
-    if (supabaseClient) {
+    if (supabaseClient && currentUser.id !== 'local-user') {
         try {
             const { error } = await supabaseClient
                 .from('tasks')
@@ -210,7 +292,6 @@ async function deleteTask(id) {
             if (error) throw error;
             await loadTasks();
         } catch (err) {
-            console.error('Error eliminando en Supabase:', err);
             deleteTaskLocal(id);
         }
     } else {
