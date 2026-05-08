@@ -145,7 +145,11 @@ function handleAuthStateChange(user) {
         authScreen.classList.add('hidden');
         appContent.classList.remove('opacity-0', 'pointer-events-none');
         addTaskBtn.classList.remove('hidden');
+        
+        // Toggle User Bar
         userInfoBar.classList.remove('hidden');
+        userInfoBar.classList.add('flex');
+        
         tagline.classList.add('hidden');
         userDisplayName.textContent = user.email;
         loadTasks();
@@ -153,7 +157,11 @@ function handleAuthStateChange(user) {
         authScreen.classList.remove('hidden');
         appContent.classList.add('opacity-0', 'pointer-events-none');
         addTaskBtn.classList.add('hidden');
+        
+        // Hide User Bar
         userInfoBar.classList.add('hidden');
+        userInfoBar.classList.remove('flex');
+        
         tagline.classList.remove('hidden');
         tasks = [];
         renderTasks();
