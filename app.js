@@ -3,7 +3,7 @@
  */
 
 // --- CONFIGURACIÓN DE BASE DE DATOS (SUPABASE) ---
-const SUPABASE_URL = 'TU_URL_DE_SUPABASE';
+const SUPABASE_URL = 'https://zjlktasqyztoxhjonppx.supabase.co';
 const SUPABASE_ANON_KEY = 'TU_KEY_ANONIMA_DE_SUPABASE';
 
 let supabaseClient = null;
