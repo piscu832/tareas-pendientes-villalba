@@ -4,7 +4,7 @@
 
 // --- CONFIGURACIÓN DE BASE DE DATOS (SUPABASE) ---
 const SUPABASE_URL = 'https://zjlktasqyztoxhjonppx.supabase.co';
-const SUPABASE_ANON_KEY = 'TU_KEY_ANONIMA_DE_SUPABASE';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqbGt0YXNxeXp0b3hoam9ucHB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjEwNjEsImV4cCI6MjA5MzgzNzA2MX0.UdPqXOiW3tcADJepDNXMNND8Ui0-nCUGbA4STZyjNfk';
 
 let supabaseClient = null;
 if (SUPABASE_URL !== 'TU_URL_DE_SUPABASE') {
