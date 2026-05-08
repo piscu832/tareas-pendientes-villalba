@@ -21,6 +21,8 @@ const appContent = document.getElementById('app-content');
 const authForm = document.getElementById('auth-form');
 const authEmail = document.getElementById('auth-email');
 const authPassword = document.getElementById('auth-password');
+const authConfirmPassword = document.getElementById('auth-confirm-password');
+const confirmPasswordContainer = document.getElementById('confirm-password-container');
 const authSubmitBtn = document.getElementById('auth-submit-btn');
 const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
 const logoutBtn = document.getElementById('logout-btn');
@@ -79,12 +81,22 @@ function setupAuthListeners() {
         isLoginMode = !isLoginMode;
         authSubmitBtn.textContent = isLoginMode ? 'Iniciar Sesión' : 'Registrarse';
         toggleAuthModeBtn.textContent = isLoginMode ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión';
+        
+        // Show/Hide confirm password
+        if (isLoginMode) {
+            confirmPasswordContainer.classList.add('hidden');
+            authConfirmPassword.removeAttribute('required');
+        } else {
+            confirmPasswordContainer.classList.remove('hidden');
+            authConfirmPassword.setAttribute('required', '');
+        }
     });
 
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = authEmail.value;
         const password = authPassword.value;
+        const confirmPassword = authConfirmPassword.value;
 
         if (!supabaseClient) {
             alert('Configura Supabase para habilitar el sistema de usuarios.');
@@ -96,7 +108,18 @@ function setupAuthListeners() {
             if (isLoginMode) {
                 result = await supabaseClient.auth.signInWithPassword({ email, password });
             } else {
-                result = await supabaseClient.auth.signUp({ email, password });
+                if (password !== confirmPassword) {
+                    alert('Las contraseñas no coinciden.');
+                    return;
+                }
+                
+                result = await supabaseClient.auth.signUp({ 
+                    email, 
+                    password,
+                    options: {
+                        emailRedirectTo: window.location.origin + window.location.pathname
+                    }
+                });
             }
 
             if (result.error) throw result.error;
