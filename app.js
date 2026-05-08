@@ -26,6 +26,9 @@ const confirmPasswordContainer = document.getElementById('confirm-password-conta
 const authSubmitBtn = document.getElementById('auth-submit-btn');
 const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
 const logoutBtn = document.getElementById('logout-btn');
+const userInfoBar = document.getElementById('user-info-bar');
+const userDisplayName = document.getElementById('user-display-name');
+const tagline = document.getElementById('tagline');
 
 const modal = document.getElementById('task-modal');
 const modalContainer = document.getElementById('modal-container');
@@ -142,13 +145,16 @@ function handleAuthStateChange(user) {
         authScreen.classList.add('hidden');
         appContent.classList.remove('opacity-0', 'pointer-events-none');
         addTaskBtn.classList.remove('hidden');
-        logoutBtn.classList.remove('hidden');
+        userInfoBar.classList.remove('hidden');
+        tagline.classList.add('hidden');
+        userDisplayName.textContent = user.email;
         loadTasks();
     } else {
         authScreen.classList.remove('hidden');
         appContent.classList.add('opacity-0', 'pointer-events-none');
         addTaskBtn.classList.add('hidden');
-        logoutBtn.classList.add('hidden');
+        userInfoBar.classList.add('hidden');
+        tagline.classList.remove('hidden');
         tasks = [];
         renderTasks();
     }
