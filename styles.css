@@ -72,9 +72,28 @@ body {
     display: flex;
 }
 
+#modal-container {
+    width: 95%;
+    max-width: 450px;
+}
+
 #task-modal.active #modal-container {
     opacity: 1;
     transform: scale(1);
+}
+
+@media (max-width: 640px) {
+    .kanban-column {
+        margin-bottom: 2rem;
+    }
+    
+    .column-content {
+        min-h-[auto] !important;
+    }
+    
+    body {
+        padding-bottom: 2rem;
+    }
 }
 
 /* Custom Scrollbar */
